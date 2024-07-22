@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image with Buttons</title>
+</head>
+<body>
+    <div style="text-align: center;">
+        <img id="displayed-image" src="{{ url_for('get_image', filename=image_path) }}" alt="Image" style="max-width: 100%; height: auto;">
+        <div style="margin-top: 20px;">
+            <button id="ok-button" onclick="sendRequest('/ok')">OK</button>
+            <button id="wrong-button" onclick="sendRequest('/wrong')">Wrong</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded and parsed');
+
+            document.addEventListener('keydown', function(event) {
+                console.log(`Key pressed: ${event.key}`);
+                if (event.key === '1') {
+                    document.getElementById('ok-button').click();
+                } else if (event.key === '2') {
+                    document.getElementById('wrong-button').click();
+                }
+            });
+        });
+
+        function sendRequest(url) {
+            fetch(url, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.next_image) {
+                        const imagePath = data.next_image;
+                        console.log(`${imagePath}`);
+                        document.getElementById('displayed-image').src = `/image/${imagePath}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+</html>

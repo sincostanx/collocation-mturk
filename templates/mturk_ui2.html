@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Segmentation</title>
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+    <style>
+        crowd-semantic-segmentation {
+            display: block;
+            width: 100%;
+            height: 500px; /* Adjust the height as needed */
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                window.dispatchEvent(new Event('resize'));
+            }, 100);
+        });
+    </script>
+</head>
+<body>
+    <crowd-form>
+        <crowd-tabs>
+            <crowd-tab header="Tab 1">
+                <crowd-semantic-segmentation
+                    name="annotatedResult1"
+                    src="https://collocation2024.github.io/image-mturk/test/beach.png"
+                    header="Please label each of the requested objects in this image"
+                    labels='["Tree", "Person", "Sand", "Ocean"]'
+                >
+                    <full-instructions header="Segmentation Instructions">
+                        <ol>
+                            <li><strong>Read</strong> the task carefully and inspect the image.</li>
+                            <li><strong>Read</strong> the options and review the examples provided to understand more about the labels.</li>
+                            <li><strong>Choose</strong> the appropriate label that best suits the image.</li>
+                        </ol>
+                    </full-instructions>
+                    <short-instructions>
+                        <p>Use the tools to label the requested items in the image</p>
+                    </short-instructions>
+                </crowd-semantic-segmentation>
+            </crowd-tab>
+
+            <crowd-tab header="Tab 2">
+                <crowd-semantic-segmentation
+                    name="annotatedResult2"
+                    src="https://collocation2024.github.io/image-mturk/test/cat_0001_Background.png"
+                    header="Please label each of the requested objects in this image"
+                    labels='["xxx"]'
+                >
+                    <full-instructions header="Segmentation Instructions">
+                        <ol>
+                            <li><strong>Read</strong> the task carefully and inspect the image.</li>
+                            <li><strong>Read</strong> the options and review the examples provided to understand more about the labels.</li>
+                            <li><strong>Choose</strong> the appropriate label that best suits the image.</li>
+                        </ol>
+                    </full-instructions>
+                    <short-instructions>
+                        <p>Use the tools to label the requested items in the image</p>
+                    </short-instructions>
+                </crowd-semantic-segmentation>
+            </crowd-tab>
+
+            <crowd-tab header="Tab 3">
+                <crowd-semantic-segmentation
+                    name="annotatedResult3"
+                    src="https://collocation2024.github.io/image-mturk/test/rice_0001_Background.png"
+                    header="Please label each of the requested objects in this image"
+                    labels='["yyy"]'
+                >
+                    <full-instructions header="Segmentation Instructions">
+                        <ol>
+                            <li><strong>Read</strong> the task carefully and inspect the image.</li>
+                            <li><strong>Read</strong> the options and review the examples provided to understand more about the labels.</li>
+                            <li><strong>Choose</strong> the appropriate label that best suits the image.</li>
+                        </ol>
+                    </full-instructions>
+                    <short-instructions>
+                        <p>Use the tools to label the requested items in the image</p>
+                    </short-instructions>
+                </crowd-semantic-segmentation>
+            </crowd-tab>
+        </crowd-tabs>
+    </crowd-form>
+</body>
+</html>

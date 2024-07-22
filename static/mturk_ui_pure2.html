@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Segmentation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma-tooltip/1.2.0/bulma-tooltip.css">
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .button-next-div{
+            z-index: 9999;
+            margin-right: 12px;
+            right: 0px;
+            bottom: 0px;
+            position: absolute;
+            margin-bottom: 12px;
+            background-color: #fff;
+            width: 180px;
+            text-align: right;
+            height:48px;
+        }
+        #fake-loading-screen{
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 99990;
+        }
+        #fake-loading-screen > div{
+            transform: translate(-50%, -50%);
+            top: 50%;
+            left: 50%;
+            position: fixed;
+            font-family: sans-serif;
+            font-size: 2rem;
+            color: black;
+            z-index: 99999
+        }
+        .bottom-page-bar{
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            border-top: 1px solid #aab7b8;
+            border-bottom: 1px solid #aab7b8;
+            z-index: 9999;
+            margin-bottom: 60px;
+            box-sizing: border-box;
+        }
+        .not-saved-tab{
+            background-color:  var(--bulma-danger);
+        }
+        .saved-tab {
+            background-color:  var(--bulma-primary);
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .full-width-image {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" style="position: relative;">
+        <!-- <div id="fake-loading-screen"v-show="!apply_tab">
+            <div>
+            Loading...
+            <progress class="progress is-small is-primary" max="100">15%</progress>
+            </div> 
+        </div> -->
+        <!--
+        <div class="tabs">
+            <ul>
+              <li v-for="(item,index) in segmentation_form" v-bind:class="((!apply_tab && index == 0) || (apply_tab && index == segmentation_tab))?'is-active':''" ><a @click="segmentation_tab = index">{{item.name}}</a></li>
+            </ul>
+        </div>
+        -->
+        <!-- Bottom page bar for page change-->
+        <div class="bottom-page-bar">
+            <nav class="pagination is-centered" role="navigation" aria-label="pagination" style="margin:8px;">
+                <!-- <button href="#"  class="pagination-next has-tooltip-top button is-warning " disabled data-tooltip='Save all before submit'  >Submit</button> -->
+                <!-- <button href="#"  class="pagination-next" >Save</button> -->
+               
+                <ul class="pagination-list">
+                  <li  v-for="(item,index) in segmentation_form"><button class="pagination-link" :class="{ 'is-current': index==segmentation_tab }" :aria-label="'Goto page '+ index" @click="segmentation_tab = index">{{index + 1}}</a></li>
+                </ul>
+              </nav>
+        </div>
+        <crowd-form>
+            <!-- instruction -->
+            <div class="container">
+                <img src="https://collocation2024.github.io/image-mturk/placeholder_instruction.png" alt="Instruction" class="full-width-image">
+            </div>
+
+            <div v-for="(item,index) in segmentation_form" v-show="!apply_tab || index == segmentation_tab" style="position: relative;">
+                <div class="button-next-div"  >
+                    
+                    <a class="button" v-if="index != segmentation_form.length-1" @click="nextForm">next</a>
+                    <a class="button is-primary is-warning" v-if="index == segmentation_form.length-1" @click="submitForm">submit</a>
+                   
+                </div>
+
+                <crowd-semantic-segmentation
+                        :id="'segmentbox_'+index"
+                        :name="'annotatedResult'+index"
+                        :src="item.src"
+                        header="Please label each of the requested objects in this image"
+                        :labels='JSON.stringify(item.labels)'
+                    >
+                        <!-- <full-instructions header="Segmentation Instructions">
+                            Please see the instruction above.
+                        </full-instructions>
+                        <short-instructions>
+                            Please see the instruction above.
+                        </short-instructions> -->
+                </crowd-semantic-segmentation>
+            </div>
+        </crowd-form>
+
+    </div>
+    <script>
+        const { createApp, ref, nextTick  } = Vue
+        createApp({
+            setup() {
+                const segmentation_form = [
+                    {
+                        'name': 'Tab Name 1',
+                        'src': 'https://collocation2024.github.io/image-mturk/test/beach.png',
+                        'labels': ['Tree', 'Person', 'Sand', 'Ocean']
+                    },
+                    {
+                            'name': 'Tab Name 2',
+                            'src': 'https://collocation2024.github.io/image-mturk/test/cat_0001_Background.png',
+                            'labels': ['xxx']
+                    },
+                    // {
+                    //     'name': 'Tab Name 3',
+                    //     'src': 'https://collocation2024.github.io/image-mturk/test/rice_0001_Background.png',
+                    //     'labels': ['yyy']
+                    // },
+                    // {
+                    //     'name': 'Tab Name 4',
+                    //     'src': 'https://collocation2024.github.io/image-mturk/test/man2_0001_Background.png',
+                    //     'labels': ['zzz']
+                    // }
+                ]
+                return {
+                    segmentation_form: ref(segmentation_form),
+                    segmentation_tab: ref(0),
+                    apply_tab: ref(false),
+                    is_tab_save: ref(new Array(segmentation_form.length).fill(false)),
+                    is_tab_view: ref(new Array(segmentation_form.length).fill(false))
+                }
+            },
+            mounted() {
+                setTimeout(() => {
+                    window.scrollTo(0, document.body.scrollHeight);
+                    this.apply_tab = true;
+                }, 5000)       
+            },            
+            methods: {
+                submitForm(event){
+                    segmentbox = document.querySelector('#segmentbox_'+this.segmentation_tab)
+                    submitButton = segmentbox.shadowRoot.querySelector('button[type="submit"]')
+                    submitButton.click()
+                },
+                nextForm(event){
+                    this.submitForm();
+                    this.segmentation_tab++
+                }   
+            }
+            
+          }).mount('#app')
+
+          
+        
+    </script>
+</body>
+</html>

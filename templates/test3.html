@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Segmentation Annotation Tool</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Segmentation Annotation Tool</h2>
+<p>Object Class: <span id="object-class">Example Object</span></p>
+<canvas id="annotationCanvas" width="800" height="600"></canvas>
+<br>
+<button id="submitBtn">Submit</button>
+
+<script id="turkey" type="text/javascript">
+  let translateX, translateY, correctX, correctY, anchorX, anchorY, dragX, dragY, mouseX, mouseY;
+  let dragged, dragStart, delta, scaleRatio, scaleDiff;
+  let child, parent, canvas, ctx, img, modeButton;
+  let annotations, modes, classSelection;
+  let transparency_level = 0.5;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let scalingOffsetX = 0;
+  let scalingOffsetY = 0;
+  let oldScale = 1.0;
+  let newScale = 1.0;
+  let firstPoint = true;
+  let mode = "";
+  let modeNum = 0;
+  let dotSize = 4;
+  let scaleTransform = 1;
+  let translateTransform = [0, 0];
+  let translateTransform_raw = [0, 0];
+  let delete_mode = false;
+  let delete_idx = -1;
+  let trashcan = new Array();
+  let colors = {};
+  let timeDownUp = null;
+  let rightClick = false;
+
+  let currentPolygon = { class: [], mode: "polygon", data: [] };
+
+  var start = function () {
+    canvas = document.getElementById("annotationCanvas");
+    ctx = canvas.getContext("2d");
+    modeButton = document.getElementById("mode_button");
+
+    canvas.style.cursor = "crosshair";
+
+    //initialize buttons
+    $("#reset_button").click(reset);
+    $("#undo_button").click(undo);
+
+    // disable right click context menu on canvas
+    canvas.oncontextmenu = function () {
+      return false;
+    };
+
+    canvas.addEventListener("pointerdown", function (evt) {
+      rightClick = evt.which == 3;
+      getCorrectCoords(evt);
+      timeDownUp = new Date().getTime();
+      anchorX = evt.clientX;
+      anchorY = evt.clientY;
+      dragged = false;
+      dragStart = true;
+    });
+
+    canvas.addEventListener("pointerup", function (evt) {
+      timeDownUp = new Date().getTime();
+      getCorrectCoords(evt);
+      if (!dragged) {
+        if (!rightClick) {
+          updateAnnotation();
+        }
+      }
+      rightClick = false;
+      dragStart = false;
+      updateGraphics();
+    });
+
+    canvas.addEventListener("mousemove", function (evt) {
+      getCorrectCoords(evt);
+      if (rightClick) {
+        let timeMove = new Date().getTime();
+        if (timeMove > timeDownUp) {
+          if (dragStart) {
+            dragged = true;
+            dragX = evt.clientX - anchorX;
+            dragY = evt.clientY - anchorY;
+            translateTransform_raw = [
+              translateTransform_raw[0] + dragX,
+              translateTransform_raw[1] + dragY,
+            ];
+            translateTransform[0] = translateTransform_raw[0] / newScale;
+            translateTransform[1] = translateTransform_raw[1] / newScale;
+            updateTransform();
+            dragOffsetX += dragX;
+            dragOffsetY += dragY;
+            anchorX = evt.clientX;
+            anchorY = evt.clientY;
+          }
+        } else {
+          timeDownUp = null;
+        }
+      }
+    });
+
+    function drawPolygonOutline(corners) {
+      for (let j = 0; j < corners.length; j++) {
+        ctx.fillRect(
+          corners[j][0] - dotSize / 2,
+          corners[j][1] - dotSize / 2,
+          dotSize,
+          dotSize
+        );
+      }
+      ctx.beginPath();
+      ctx.moveTo(corners[0][0], corners[0][1]);
+      for (let j = 1; j < corners.length; j++) {
+        ctx.lineTo(corners[j][0], corners[j][1]);
+      }
+      ctx.lineTo(corners[0][0], corners[0][1]);
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    function fillPolygon(corners) {
+      ctx.beginPath();
+      ctx.moveTo(corners[0][0], corners[0][1]);
+      for (let j = 1; j < corners.length; j++) {
+        ctx.lineTo(corners[j][0], corners[j][1]);
+      }
+      ctx.lineTo(corners[0][0], corners[0][1]);
+      ctx.stroke();
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function updateAnnotation() {
+      switch (mode) {
+        case "polygon": // polygon mode
+          currentPolygon.class = getClass();
+          if (currentPolygon.data.length > 0 && Math.abs(correctX - currentPolygon.data[0][0]) < 5 && Math.abs(correctY - currentPolygon.data[0][1]) < 5) {
+            currentPolygon.data.push(currentPolygon.data[0]); // Close the polygon
+            annotations.push(Object.assign({}, currentPolygon));
+            currentPolygon.data = new Array();
+          } else {
+            currentPolygon.data.push([correctX, correctY]);
+          }
+          updateGraphics();
+      }
+    }
+
+    function updateGraphics() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      annotations.forEach((ann, idx) => {
+        if (ann.mode === "polygon") {
+          drawPolygonOutline(ann.data);
+        }
+      });
+      if (currentPolygon.data.length != 0) {
+        drawPolygonOutline(currentPolygon.data);
+      }
+    }
+
+    function reset() {
+      clearAnnotations();
+      reposition();
+      firstPoint = true;
+      dragStart = false;
+      dragged = false;
+    }
+
+    function clearAnnotations() {
+      annotations = new Array();
+      trashcan = new Array();
+      currentPolygon = { class: [], mode: "polygon", data: [] };
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function reposition() {
+      scaleTransform = 1.0;
+      translateTransform = [0, 0];
+      translateTransform_raw = [0, 0];
+      newScale = 1.0;
+      oldScale = 1.0;
+      scaleRatio = 1.0;
+      scaleDiff = 0;
+      dragOffsetX = 0;
+      dragOffsetY = 0;
+      scalingOffsetX = 0;
+      scalingOffsetY = 0;
+    }
+
+    function getClass() {
+      return classSelection[classSelection.selectedIndex].innerHTML;
+    }
+
+    function getCorrectCoords(evt) {
+      mouseX =
+        evt.clientX - canvas.offsetLeft + canvas.scrollLeft + window.pageXOffset;
+      mouseY =
+        evt.clientY - canvas.offsetTop + canvas.scrollTop + window.pageYOffset;
+      correctX = mouseX;
+      correctY = mouseY;
+      correctX = Math.round(correctX);
+      correctY = Math.round(correctY);
+    }
+
+    $("#submitBtn").click(function () {
+        if (annotations.length === 0) {
+            alert('Please draw at least one polygon.');
+            return;
+        }
+
+        // Create a temporary canvas to draw all polygons
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+
+        // Draw all polygons on the temporary canvas
+        tempCtx.strokeStyle = 'red';
+        tempCtx.lineWidth = 2;
+        annotations.forEach((polygon) => {
+            tempCtx.beginPath();
+            tempCtx.moveTo(polygon.data[0][0], polygon.data[0][1]);
+            for (let i = 1; i < polygon.data.length; i++) {
+                tempCtx.lineTo(polygon.data[i][0], polygon.data[i][1]);
+            }
+            tempCtx.closePath();
+            tempCtx.stroke();
+        });
+
+        // Convert the temporary canvas to a PNG file
+        tempCanvas.toBlob(function (blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'https://collocation2024.github.io/image-mturk/placeholder_instruction.png';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    });
+
+    window.addEventListener(
+      "keydown",
+      function (evt) {
+        // Press C for "Close Polygon"
+        if (evt.key == "c") {
+          if (currentPolygon.data.length > 2) {
+            currentPolygon.class = getClass();
+            annotations.push(Object.assign({}, currentPolygon));
+            currentPolygon.data = new Array();
+          }
+          // Update coordinates
+          if (annotations.length == 0) {
+            document.getElementById("coordinates").value = "";
+          } else {
+            document.getElementById("coordinates").value =
+              JSON.stringify(annotations);
+          }
+        }
+        updateGraphics();
+      },
+      true
+    );
+  };
+
+  window.onload = function () {
+    start();
+  };
+</script>
+
+</body>
+</html>

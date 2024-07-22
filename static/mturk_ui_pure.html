@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Segmentation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.1/css/bulma.min.css">
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="tabs">
+            <ul>
+              <li v-for="(item,index) in segmentation_form" v-bind:class="((!apply_tab && index == 0) || (apply_tab && index == segmentation_tab))?'is-active':''" ><a @click="segmentation_tab = index">{{item.name}}</a></li>
+            </ul>
+        </div>
+        <crowd-form>
+            <div  v-for="(item,index) in segmentation_form" v-show="!apply_tab || index == segmentation_tab">
+                <crowd-semantic-segmentation
+                        :name="`annotatedResult${index}`"
+                        :src="item.src"
+                        header="Please label each of the requested objects in this image"
+                        :labels='JSON.stringify(item.labels)'
+                    >
+                        <full-instructions header="Segmentation Instructions">
+                            <ol>
+                                <li><strong>Read</strong> the task carefully and inspect the image.</li>
+                                <li><strong>Read</strong> the options and review the examples provided to understand more about the labels.</li>
+                                <li><strong>Choose</strong> the appropriate label that best suits the image.</li>
+                            </ol>
+                        </full-instructions>
+                        <short-instructions>
+                            <p>Use the tools to label the requested items in the image</p>
+                        </short-instructions>
+                </crowd-semantic-segmentation>
+            </div>
+        </crowd-form>
+
+    </div>
+    <script>
+        const { createApp, ref, nextTick  } = Vue
+        createApp({
+            setup() {
+                const segmentation_form = [
+                    {
+                        'name': 'Tab Name 1',
+                        'src': 'https://collocation2024.github.io/image-mturk/test/beach.png',
+                        'labels': ['Tree', 'Person', 'Sand', 'Ocean']
+                    },
+                    {
+                            'name': 'Tab Name 2',
+                            'src': 'https://collocation2024.github.io/image-mturk/test/girl2_0001_Background.png',
+                            'labels': ['xxx']
+                    },
+                    {
+                        'name': 'Tab Name 3',
+                        'src': 'https://collocation2024.github.io/image-mturk/test/rice_0001_Background.png',
+                        'labels': ['yyy']
+                    }
+                ]
+                return {
+                    count: ref(0),
+                    segmentation_form: ref(segmentation_form),
+                    segmentation_tab: ref(0),
+                    apply_tab: ref(false)
+                }
+            },
+            mounted() {
+                setTimeout(() => {
+                    this.apply_tab = true
+                }, 3000)      
+            },
+            
+          }).mount('#app')
+        
+    </script>
+</body>
+</html>
