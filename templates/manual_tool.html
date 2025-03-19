@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10x10 Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        td {
+            width: 10%;
+            height: 100px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid black;
+            cursor: pointer;
+        }
+        img {
+            width: 300px;
+            height: 300px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .next-button, .submit-button {
+            font-size: 20px;
+            padding: 10px 20px;
+        }
+        .clicked {
+            background-color: palegreen !important;
+        }
+    </style>
+    <script>
+        function cellClicked(page, x, y) {
+            const cell = document.getElementById(`cell-${x}-${y}`);
+            if (cell.classList.contains('clicked')) {
+                cell.classList.remove('clicked');
+            } else {
+                cell.classList.add('clicked');
+            }
+            
+            fetch('/click', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `page=${page}&x=${x}&y=${y}`
+            });
+        }
+    </script>
+</head>
+<body>
+    <table>
+        {% for i in range(20) %}
+            <tr>
+                {% for j in range(5) %}
+                    <td id="cell-{{ i }}-{{ j }}" onclick="cellClicked({{ page }}, {{ i }}, {{ j }})">
+                        {{ cell_data[i][j]['text'] }}<br>
+                        <img src="{{ url_for('static', filename=get_relative_image_path(cell_data[i][j]['image'])) }}" alt="Image">
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+    <div class="button-container">
+        {% if is_last_page %}
+            <form action="/submit" method="post">
+                <button type="submit" class="submit-button">Submit</button>
+            </form>
+        {% else %}
+            <form action="/page/{{ page + 1 }}" method="get">
+                <button type="submit" class="next-button">Next</button>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

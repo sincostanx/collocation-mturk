@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Segmentation</title>
+    <script src="https://assets.crowd.aws/crowd-html-elements.js"></script>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .full-width-image {
+            width: 80%;
+            height: auto;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px; /* Adjust the margin as needed */
+            margin-bottom: 20px; /* Adjust the margin as needed */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        /* Optional: Styling to make sure the button is visible */
+        button {
+            background-color: #4CAF50; /* Green background */
+            color: white; /* White text */
+            border: none; /* Remove borders */
+            border-radius: 4px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+        }
+        button:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://collocation2024.github.io/image-mturk/instruction_rev2.webp" alt="Instruction" class="full-width-image">
+    </div>
+    <br><br>
+
+    <crowd-form>
+        <div style="text-align: center; font-weight: bold; font-size: 30px;">Question 1</div>
+        <br>
+        <div style="text-align: center; font-size: 20px;">
+            <span id="question1" style="color: red;">swimming pool</span> / <span style="color: green;">barbeque grill</span>
+        </div>
+
+        <crowd-semantic-segmentation
+            id="segment1"
+            name="annotatedResult1"
+            src="${image_url1}"
+            header="Please label ALL plausible locations for placing the object in this image"
+            labels="[${labels1}]"
+        >
+            <full-instructions header="Instruction"> Please check the instruction at the top of this page. </full-instructions>
+            <short-instructions> <p>Please check the instruction at the top of this page.</p> </short-instructions>
+        </crowd-semantic-segmentation>
+
+        <br><br><hr width="100%;" color="black" size="3"><br><br>
+        <div style="text-align: center; font-weight: bold; font-size: 30px;">Question 2</div>
+        <br>
+        <div style="text-align: center; font-size: 20px;">
+            <span id="question2" style="color: red;">otter</span> / <span style="color: green;">rock</span>
+        </div>
+
+        <crowd-semantic-segmentation
+            id="segment2"
+            name="annotatedResult2"
+            src="${image_url2}"
+            header="Please label ALL plausible locations for placing the object in this image"
+            labels="[${labels2}]"
+        >
+            <full-instructions header="Instruction"> Please check the instruction at the top of this page. </full-instructions>
+            <short-instructions> <p>Please check the instruction at the top of this page.</p> </short-instructions>
+        </crowd-semantic-segmentation>
+
+        <br><br><hr width="100%;" color="black" size="3"><br><br>
+        <div style="text-align: center; font-weight: bold; font-size: 30px;">Question 3</div>
+        <br>
+        <div style="text-align: center; font-size: 20px;">
+            <span id="question3" style="color: red;">people</span> / <span style="color: green;">wall clock</span>
+        </div>
+        <crowd-semantic-segmentation
+            id="segment3"
+            name="annotatedResult3"
+            src="${image_url3}"
+            header="Please label ALL plausible locations for placing the object in this image"
+            labels="[${labels3}]"
+        >
+            <full-instructions header="Instruction"> Please check the instruction at the top of this page. </full-instructions>
+            <short-instructions> <p>Please check the instruction at the top of this page.</p> </short-instructions>
+        </crowd-semantic-segmentation>
+        
+        <br><br><hr width="100%;" color="black" size="3"><br><br>
+        <div style="text-align: center; font-weight: bold; font-size: 30px;">Question 4</div>
+        <br>
+        <div style="text-align: center; font-size: 20px;">
+            <span id="question4" style="color: red;">truck</span> / <span style="color: green;">a traffic cone</span>
+        </div>
+        <crowd-semantic-segmentation
+            id="segment4"
+            name="annotatedResult4"
+            src="${image_url4}"
+            header="Please label ALL plausible locations for placing the object in this image"
+            labels="[${labels4}]"
+        >
+            <full-instructions header="Instruction"> Please check the instruction at the top of this page. </full-instructions>
+            <short-instructions> <p>Please check the instruction at the top of this page.</p> </short-instructions>
+        </crowd-semantic-segmentation>
+
+        <br><br><hr width="100%;" color="black" size="3"><br><br>
+        <div style="text-align: center; font-weight: bold; font-size: 30px;">Question 5</div>
+        <br>
+        <div style="text-align: center; font-size: 20px;">
+            <span id="question5" style="color: red;">building</span> / <span style="color: green;">statue</span>
+        </div>
+        <crowd-semantic-segmentation
+            id="segment5"
+            name="annotatedResult5"
+            src="${image_url5}"
+            header="Please label ALL plausible locations for placing the object in this image"
+            labels="[${labels5}]"
+        >
+            <full-instructions header="Instruction"> Please check the instruction at the top of this page. </full-instructions>
+            <short-instructions> <p>Please check the instruction at the top of this page.</p> </short-instructions>
+        </crowd-semantic-segmentation>
+
+        <div class="button-container">
+            <button type="button" id="submitBtn">Submit</button>
+        </div>
+    </crowd-form>
+
+    <script>
+        const data = {
+            src: [
+                "https://collocation2024.github.io/image-mturk/test_ui/000043.png",
+                "https://collocation2024.github.io/image-mturk/test_ui/000254.png",
+                "https://collocation2024.github.io/image-mturk/test_ui/0813.png",
+                "https://collocation2024.github.io/image-mturk/test_ui/001645.png",
+                "https://collocation2024.github.io/image-mturk/test_ui/001946.png",
+            ],
+            labels: ["['barbeque grill']", "['rock']", "['wall clock']", "['a traffic cone']", "['statue']"],
+        };
+
+        function setAttributesById(elementId, src, labels) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.setAttribute('src', src);
+                element.setAttribute('labels', labels);
+            }
+        }
+
+        setAttributesById('segment1', data.src[0], data.labels[0]);
+        setAttributesById('segment2', data.src[1], data.labels[1]);
+        setAttributesById('segment3', data.src[2], data.labels[2]);
+        setAttributesById('segment4', data.src[3], data.labels[3]);
+        setAttributesById('segment5', data.src[4], data.labels[4]);
+
+        function submitForm(event) {
+            console.error("call");
+            for (let idx = 1; idx <= 5; idx++) {
+                const segmentbox = document.querySelector('#segment' + idx);
+                console.log('segment' + idx);
+                const submitButton = segmentbox.shadowRoot.querySelector('button[type="submit"]');
+                submitButton.click();
+            }
+        }
+
+        document.getElementById('submitBtn').addEventListener('click', submitForm);
+    </script>
+</body>
+</html>
